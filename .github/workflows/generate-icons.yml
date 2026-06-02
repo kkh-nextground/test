@@ -1,0 +1,52 @@
+name: Generate Icons
+
+# 아이콘 추출 플러그인이 src/assets/icons 아래로 SVG를 올린 PR에서 동작
+on:
+  pull_request:
+    paths:
+      - 'src/assets/icons/**.svg'
+
+# 생성된 컴포넌트를 PR 브랜치에 다시 push 하려면 쓰기 권한 필요
+permissions:
+  contents: write
+
+# 같은 PR에 새 커밋이 push되면 이전 실행은 취소
+concurrency:
+  group: generate-icons-${{ github.head_ref }}
+  cancel-in-progress: true
+
+jobs:
+  icons:
+    runs-on: ubuntu-latest
+    # 포크에서 온 PR은 GITHUB_TOKEN에 쓰기 권한이 없어 push가 불가 → 동일 저장소 PR만 처리
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    steps:
+      - name: Checkout PR branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run SVGO + SVGR
+        run: npm run icons:build
+
+      - name: Commit generated components
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/components/icons
+          if git diff --staged --quiet; then
+            echo "변경된 아이콘 없음 — 커밋 생략"
+          else
+            git commit -m "chore(icons): SVGO+SVGR 자동 생성 [skip ci]"
+            git push origin HEAD:${{ github.head_ref }}
+          fi
