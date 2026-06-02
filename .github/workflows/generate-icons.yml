@@ -43,7 +43,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add src/components/icons
+          git add src/icons
           if git diff --staged --quiet; then
             echo "변경된 아이콘 없음 — 커밋 생략"
           else
