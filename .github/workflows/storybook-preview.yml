@@ -1,0 +1,51 @@
+name: Storybook PR Preview
+
+# 모든 PR에서 Storybook을 빌드해 gh-pages의 pr-preview/pr-<번호>/ 경로로 배포하고
+# PR에 프리뷰 URL을 코멘트. PR이 닫히면 해당 프리뷰를 자동 정리.
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, closed]
+
+permissions:
+  contents: write # gh-pages 브랜치에 push
+  pull-requests: write # 프리뷰 URL 코멘트
+
+# 같은 PR의 프리뷰 배포는 직렬화 (동시 배포 충돌 방지)
+concurrency:
+  group: storybook-preview-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  preview:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # PR이 닫힌 경우엔 빌드 없이 프리뷰 정리만 수행
+      - name: Setup Node
+        if: github.event.action != 'closed'
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        if: github.event.action != 'closed'
+        run: npm ci
+
+      # SVG로부터 아이콘 컴포넌트를 (커밋과 무관하게) 재생성 →
+      # 아이콘 추가 PR에서도 프리뷰가 항상 최신 아이콘을 반영
+      - name: Generate icons (SVGO + SVGR)
+        if: github.event.action != 'closed'
+        run: npm run icons:build
+
+      - name: Build Storybook
+        if: github.event.action != 'closed'
+        run: npm run build-storybook
+
+      # open/sync/reopen → 배포, closed → 정리 (이벤트로 자동 분기)
+      - name: Deploy / cleanup preview
+        uses: rossjrw/pr-preview-action@v1
+        with:
+          source-dir: ./storybook-static
+          umbrella-dir: pr-preview

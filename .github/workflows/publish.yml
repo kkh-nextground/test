@@ -1,0 +1,29 @@
+name: Publish Package
+
+# GitHub Release를 발행하면 GitHub Packages(npm.pkg.github.com)로 배포.
+# 릴리스 태그(예: v0.1.0)의 버전이 package.json version과 일치해야 합니다.
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+  packages: write # GitHub Packages 배포 권한
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          registry-url: 'https://npm.pkg.github.com'
+
+      - run: npm ci
+      - run: npm run build
+      - run: npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

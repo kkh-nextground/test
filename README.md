@@ -1,16 +1,47 @@
-# React + Vite
+# @nextground/ui
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Nextground 디자인 시스템. 아이콘은 SVG에서 자동 생성된 React(TSX) 컴포넌트로 제공됩니다.
 
-Currently, two official plugins are available:
+## 설치 (GitHub Packages)
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+`@nextground` 스코프를 GitHub Packages 레지스트리로 매핑합니다. 소비 측 프로젝트 루트에 `.npmrc`:
 
-## React Compiler
+```
+@nextground:registry=https://npm.pkg.github.com
+//npm.pkg.github.com/:_authToken=${GITHUB_TOKEN}
+```
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+```bash
+npm install @nextground/ui
+```
 
-## Expanding the ESLint configuration
+## 사용
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+```tsx
+// 개별 import (권장) — 번들러 설정과 무관하게 사용한 아이콘만 포함
+import ArrowRight from '@nextground/ui/icons/ArrowRight';
+
+// 배럴 import — 부수효과 없음(sideEffects:false)이라 트리셰이킹됨
+import { ArrowRight } from '@nextground/ui/icons';
+
+function App() {
+  // 크기는 font-size(1em 기준), 색은 currentColor로 제어
+  return <ArrowRight style={{ fontSize: 24, color: '#2563eb' }} title="다음" />;
+}
+```
+
+## 아이콘 추가 플로우 (자동화)
+
+1. 아이콘 추출 플러그인이 `src/assets/icons/*.svg`를 PR로 올림
+2. CI가 **SVGO**(최적화) + **SVGR**(TSX 생성)을 돌려 `src/icons/`에 컴포넌트를 만들고 PR에 자동 커밋
+3. CI가 **Storybook**을 빌드해 PR마다 프리뷰 URL을 코멘트 → 디자이너가 추가/누락 확인
+4. 머지 후 GitHub Release를 발행하면 `@nextground/ui`가 GitHub Packages로 배포
+
+## 개발
+
+```bash
+npm run storybook        # 로컬 Storybook (http://localhost:6006)
+npm run icons:build      # SVG → TSX 수동 생성
+npm run build            # 라이브러리 빌드 (dist/icons)
+npm run build-storybook  # 정적 Storybook 빌드
+```
