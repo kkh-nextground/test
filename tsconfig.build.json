@@ -1,0 +1,16 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": false,
+    "declaration": true,
+    "outDir": "dist/icons",
+    "rootDir": "src/icons",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "jsx": "react-jsx",
+    "allowImportingTsExtensions": false,
+    "skipLibCheck": true
+  },
+  "include": ["src/icons/**/*.ts", "src/icons/**/*.tsx"],
+  "exclude": ["src/icons/**/*.stories.tsx"]
+}

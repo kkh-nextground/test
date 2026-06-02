@@ -13,13 +13,9 @@
     "dist/icons"
   ],
   "exports": {
-    "./icons": {
-      "types": "./dist/icons/index.d.ts",
-      "import": "./dist/icons/index.js"
-    },
     "./icons/*": {
-      "types": "./dist/icons/*.d.ts",
-      "import": "./dist/icons/*.js"
+      "types": "./dist/icons/*/index.d.ts",
+      "import": "./dist/icons/*/index.js"
     }
   },
   "publishConfig": {
@@ -27,8 +23,8 @@
     "access": "restricted"
   },
   "scripts": {
-    "icons:build": "svgr --out-dir src/icons src/assets/icons",
-    "build": "tsup",
+    "icons:build": "svgr --out-dir src/icons icons",
+    "build": "tsc -p tsconfig.build.json",
     "lint": "eslint .",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build"
@@ -53,7 +49,6 @@
     "react-dom": "^19.2.6",
     "storybook": "^10.4.1",
     "svgo": "^4.0.1",
-    "tsup": "^8.5.1",
     "typescript": "^6.0.3",
     "vite": "^8.0.12"
   }

@@ -17,23 +17,22 @@ npm install @nextground/ui
 
 ## 사용
 
-```tsx
-// 개별 import (권장) — 번들러 설정과 무관하게 사용한 아이콘만 포함
-import ArrowRight from '@nextground/ui/icons/ArrowRight';
+아이콘은 카테고리(`icons/<category>/`)별로 묶여 배포됩니다.
 
-// 배럴 import — 부수효과 없음(sideEffects:false)이라 트리셰이킹됨
-import { ArrowRight } from '@nextground/ui/icons';
+```tsx
+// 카테고리 배럴에서 import (부수효과 없음 → 트리셰이킹됨)
+import { ArrowRight } from '@nextground/ui/icons/default';
 
 function App() {
-  // 크기는 font-size(1em 기준), 색은 currentColor로 제어
-  return <ArrowRight style={{ fontSize: 24, color: '#2563eb' }} title="다음" />;
+  // 색은 color prop(또는 CSS color)으로, 크기는 width/height·font-size로 제어
+  return <ArrowRight color="#2563eb" width={24} height={24} title="다음" />;
 }
 ```
 
 ## 아이콘 추가 플로우 (자동화)
 
-1. 아이콘 추출 플러그인이 `src/assets/icons/*.svg`를 PR로 올림
-2. CI가 **SVGO**(최적화) + **SVGR**(TSX 생성)을 돌려 `src/icons/`에 컴포넌트를 만들고 PR에 자동 커밋
+1. 아이콘 추출 플러그인이 `icons/<category>/*.svg`를 PR로 올림 (예: `icons/default/`)
+2. CI가 **SVGO**(최적화) + **SVGR**(TSX 생성)을 돌려 `src/icons/<category>/`에 컴포넌트를 만들고 PR에 자동 커밋
 3. CI가 **Storybook**을 빌드해 PR마다 프리뷰 URL을 코멘트 → 디자이너가 추가/누락 확인
 4. 머지 후 GitHub Release를 발행하면 `@nextground/ui`가 GitHub Packages로 배포
 
