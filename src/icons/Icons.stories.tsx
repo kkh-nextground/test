@@ -2,12 +2,14 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import { useState } from 'react';
 import * as Icons from './index';
 
-// 배럴(index.ts)의 모든 export를 자동으로 읽어 그리드로 렌더.
-// CI가 icons:build로 새 아이콘을 추가하면 이 갤러리에 자동 반영됩니다 (스토리 코드 변경 불필요).
-type IconComponent = (props: { style?: React.CSSProperties; title?: string }) => React.ReactElement;
+// 배럴(index.ts)의 모든 export를 자동으로 읽어 렌더.
+// CI가 icons:build로 새 아이콘을 추가하면 자동 반영됩니다 (스토리 코드 변경 불필요).
+type IconComponent = React.ComponentType<React.SVGProps<SVGSVGElement> & { title?: string }>;
 const entries = Object.entries(Icons) as [string, IconComponent][];
+const iconNames = entries.map(([name]) => name);
 
-function Gallery({ size }: { size: number }) {
+// ───────────────────────── 갤러리: 전체 아이콘을 한눈에 + 색/크기 컨트롤 ─────────────────────────
+function Gallery({ size, color }: { size: number; color: string }) {
   const [q, setQ] = useState('');
   const filtered = entries.filter(([name]) => name.toLowerCase().includes(q.toLowerCase()));
   return (
@@ -38,7 +40,8 @@ function Gallery({ size }: { size: number }) {
               gap: 8,
             }}
           >
-            <Icon style={{ fontSize: size, color: '#111' }} title={name} />
+            {/* color는 prop으로 직접 전달 → stroke="currentColor"가 받음 */}
+            <Icon color={color} style={{ fontSize: size }} title={name} />
             <figcaption style={{ fontSize: 12, color: '#555', textAlign: 'center', wordBreak: 'break-all' }}>
               {name}
             </figcaption>
@@ -49,16 +52,42 @@ function Gallery({ size }: { size: number }) {
   );
 }
 
-const meta: Meta<typeof Gallery> = {
+// ───────────────────────── 플레이그라운드: 아이콘 1개를 골라 prop을 실시간 조절 ─────────────────────────
+function Playground({ icon, color, size }: { icon: string; color: string; size: number }) {
+  const Icon = (Icons as Record<string, IconComponent>)[icon];
+  if (!Icon) return <p>아이콘을 선택하세요.</p>;
+  return (
+    <div style={{ display: 'flex', gap: 32, alignItems: 'center', fontFamily: 'system-ui, sans-serif' }}>
+      <Icon color={color} width={size} height={size} title={icon} />
+      <pre style={{ background: '#f6f8fa', padding: 16, borderRadius: 8, fontSize: 13 }}>
+        {`<${icon}\n  color="${color}"\n  width={${size}}\n  height={${size}}\n/>`}
+      </pre>
+    </div>
+  );
+}
+
+const meta: Meta = {
   title: 'Design System/Icons',
-  component: Gallery,
-  args: { size: 32 },
-  argTypes: { size: { control: { type: 'range', min: 16, max: 96, step: 4 } } },
   parameters: { layout: 'padded' },
+  argTypes: {
+    color: { control: { type: 'color' } }, // 색상 피커
+    size: { control: { type: 'range', min: 12, max: 128, step: 2 } },
+  },
 };
 export default meta;
 
-type Story = StoryObj<typeof Gallery>;
+// 전체 아이콘 갤러리 — 디자이너가 추가/누락 확인 + 색/크기 일괄 조절
+export const AllIcons: StoryObj<typeof Gallery> = {
+  render: (args) => <Gallery {...args} />,
+  args: { size: 32, color: '#111111' },
+};
 
-// 전체 아이콘 갤러리 — 디자이너가 추가/누락 확인용
-export const AllIcons: Story = {};
+// 단일 아이콘 플레이그라운드 — 아이콘을 골라 prop을 조절하며 확인
+export const Playground_: StoryObj<typeof Playground> = {
+  name: 'Playground',
+  render: (args) => <Playground {...args} />,
+  args: { icon: iconNames[0], color: '#2563eb', size: 64 },
+  argTypes: {
+    icon: { control: { type: 'select' }, options: iconNames },
+  },
+};
